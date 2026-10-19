@@ -1,0 +1,7 @@
+{
+  "name": "Ana",
+  "bar": 15,
+  "prs": {
+    "back_squat": 80, "front_squat": 70, "snatch": 35, "clean_jerk": 45
+  }
+}

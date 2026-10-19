@@ -1,0 +1,26 @@
+# Personal files: WodUp history, PRs, sessions and everything built from them.
+# Keep them in a separate private repo if you want them versioned (see README).
+data/
+
+# A copy of data/web.json next to the page, to view it locally.
+web/data.json
+
+# Claude Code notes that belong to whoever uses the repo, not to the project.
+CLAUDE.local.md
+
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+
+# Regenerated from barra.html on every `make test`.
+tests/logic.mjs
+
+# wodup/gq.sh scratch files. Deleted on exit unless the process is killed
+# mid-query; the cookies one holds your WodUp session.
+wodup/_run.js
+wodup/_response.json
+wodup/_cookies.json
+
+# Local tooling (the browse session keeps an internal token here).
+.gstack/

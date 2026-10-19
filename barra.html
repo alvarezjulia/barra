@@ -1,0 +1,1375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f4f5f7">
+<title>Barra — percentage calculator</title>
+<style>
+  :root{
+    --bg:#f4f5f7; --panel:#ffffff; --panel2:#eef0f4; --line:#dde1e8;
+    --txt:#1b2028; --dim:#6b7683; --acc:#f0b429; --ok:#1a7f37; --warn:#a1560c; --bad:#c0332c;
+    --r:12px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg); color:var(--txt);
+    font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    padding:0 0 env(safe-area-inset-bottom);
+    -webkit-text-size-adjust:100%;
+  }
+  .wrap{max-width:720px;margin:0 auto;padding:14px 14px 60px}
+  header{display:flex;align-items:baseline;gap:10px;margin:6px 0 14px}
+  h1{font-size:19px;margin:0;letter-spacing:-.3px}
+  h1 span{color:var(--acc)}
+  .sub{color:var(--dim);font-size:12px}
+  nav{display:flex;gap:6px;background:var(--panel);border:1px solid var(--line);padding:5px;border-radius:var(--r);margin-bottom:14px}
+  nav button{
+    flex:1;background:none;border:0;color:var(--dim);padding:9px 6px;border-radius:8px;
+    font-size:14px;font-weight:600;cursor:pointer;font-family:inherit
+  }
+  nav button.on{background:var(--panel2);color:var(--txt);box-shadow:inset 0 0 0 1px var(--line)}
+  section{display:none}
+  section.on{display:block}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:13px;margin-bottom:11px;box-shadow:0 1px 2px rgba(20,25,35,.04)}
+  label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--dim);margin-bottom:5px;font-weight:700}
+  textarea,input,select{
+    width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--txt);
+    border-radius:9px;padding:10px;font:inherit;font-size:16px
+  }
+  textarea{min-height:130px;resize:vertical;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:14px;line-height:1.6}
+  input[type=number]{-moz-appearance:textfield}
+  button.act{
+    background:var(--acc);color:#241a00;border:0;border-radius:9px;padding:12px 16px;
+    font:inherit;font-weight:800;cursor:pointer;width:100%;font-size:15px
+  }
+  button.ghost{
+    background:var(--panel2);color:var(--txt);border:1px solid var(--line);border-radius:9px;
+    padding:9px 12px;font:inherit;font-weight:600;cursor:pointer;font-size:13px;width:auto
+  }
+  .row{display:flex;gap:9px;align-items:flex-end;flex-wrap:wrap}
+  .row>*{flex:1;min-width:110px}
+  .btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .btns button{flex:0 0 auto}
+
+  /* results */
+  .res{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:12px;margin-bottom:9px;box-shadow:0 1px 2px rgba(20,25,35,.04)}
+  .res.err{border-color:#e8b4b0;background:#fdf6f5}
+  .res-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+  .mv{font-weight:700;font-size:15px}
+  .scheme{color:var(--dim);font-size:12.5px;font-variant-numeric:tabular-nums}
+  .sets{margin-top:9px;display:flex;flex-direction:column;gap:7px}
+  .set{display:flex;align-items:center;gap:10px;background:var(--panel2);border-radius:9px;padding:8px 10px;flex-wrap:wrap}
+  .pct{font-size:11.5px;color:var(--dim);min-width:42px;font-weight:700;font-variant-numeric:tabular-nums}
+  .kg{font-size:21px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.5px;min-width:78px}
+  .kg small{font-size:12px;font-weight:600;color:var(--dim);margin-left:2px}
+  .delta{font-size:11px;color:var(--warn);font-variant-numeric:tabular-nums}
+  .delta.exact{color:var(--ok)}
+  .plates{display:flex;gap:4px;flex-wrap:wrap;align-items:center;margin-left:auto}
+  .plate{
+    font-size:11px;font-weight:800;padding:3px 7px;border-radius:5px;font-variant-numeric:tabular-nums;
+    border:1px solid rgba(0,0,0,.2);white-space:nowrap
+  }
+  .plate i{font-style:normal;opacity:.65;font-weight:600}
+  .noplate{font-size:11.5px;color:var(--dim);margin-left:auto}
+  .hint{color:var(--dim);font-size:12px;margin-top:8px;line-height:1.5}
+  .err-txt{color:var(--bad);font-size:12.5px;margin-top:5px}
+  code{background:var(--panel2);padding:1px 5px;border-radius:4px;font-size:12.5px}
+
+  /* percentage table */
+  table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+  th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);font-size:14px}
+  th{font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--dim)}
+  td.n{font-weight:700}
+  td.dim{color:var(--dim);font-size:13px}
+  tr.key td{background:rgba(240,180,41,.16)}
+
+  /* settings */
+  .grid{display:grid;grid-template-columns:1fr auto;gap:7px 10px;align-items:center}
+  .grid label{margin:0;text-transform:none;font-size:13.5px;letter-spacing:0;color:var(--txt);font-weight:500}
+  .grid input{width:96px;text-align:right;padding:7px 9px}
+  .plate-row{display:flex;gap:7px;align-items:center;margin-bottom:6px}
+  .plate-row .sw{width:26px;height:26px;border-radius:5px;border:1px solid rgba(0,0,0,.2);flex:0 0 auto}
+  .plate-row input{width:70px;text-align:right;padding:6px 8px;font-size:14px}
+  .plate-row span{flex:1;font-size:13.5px}
+  .plate-row button{background:none;border:0;color:var(--dim);font-size:19px;cursor:pointer;padding:0 6px;line-height:1}
+  .seg{display:flex;gap:0;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+  .seg button{flex:1;background:var(--panel2);border:0;color:var(--dim);padding:9px 4px;font:inherit;font-size:13px;font-weight:600;cursor:pointer;border-right:1px solid var(--line)}
+  .seg button:last-child{border-right:0}
+  .seg button.on{background:var(--acc);color:#241a00}
+  /* screenshot */
+  .drop{
+    border:2px dashed var(--line);border-radius:11px;padding:18px 12px;text-align:center;
+    color:var(--dim);font-size:13.5px;cursor:pointer;background:var(--panel2);transition:border-color .15s,background .15s
+  }
+  .drop.hot{border-color:var(--acc);background:rgba(240,180,41,.10);color:var(--txt)}
+  .drop b{display:block;color:var(--txt);font-size:14.5px;margin-bottom:3px}
+  .shot{display:flex;gap:11px;align-items:flex-start;margin-top:11px}
+  .shot img{width:78px;height:78px;object-fit:cover;border-radius:9px;border:1px solid var(--line);flex:0 0 auto}
+  .shot .info{flex:1;font-size:13px;color:var(--dim);line-height:1.5}
+  .bar{height:5px;background:var(--panel2);border-radius:3px;overflow:hidden;margin-top:7px}
+  .bar i{display:block;height:100%;background:var(--acc);width:0;transition:width .25s}
+  footer{color:var(--dim);font-size:11.5px;text-align:center;margin-top:22px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>Barra<span>.</span></h1>
+  <div class="sub" id="ctx">—</div>
+</header>
+
+<nav>
+  <button data-tab="wod" class="on">Session</button>
+  <button data-tab="quick">Quick</button>
+  <button data-tab="cfg">Settings</button>
+</nav>
+
+<!-- ============ SESSION ============ -->
+<section id="wod" class="on">
+  <div class="card">
+    <label>Workout screenshot</label>
+    <div class="drop" id="drop">
+      <b>Paste a screenshot (Cmd/Ctrl+V)</b>
+      or tap here to pick one · dragging it in works too
+    </div>
+    <input type="file" id="shotFile" accept="image/*" hidden>
+    <div id="shotBox"></div>
+  </div>
+
+  <div class="card">
+    <label for="wodtext">…or type / paste the text</label>
+    <textarea id="wodtext" spellcheck="false" placeholder="Snatch 5x2 @ 80%
+Clean & Jerk 4x1 @ 85/87/90%
+Back Squat 3x5 @ 75%
+Front squat 4x3 @ 70kg"></textarea>
+    <div class="btns">
+      <button class="act" id="calc">Calculate</button>
+    </div>
+    <div class="btns">
+      <button class="ghost" id="expJson">Copy JSON for the watch</button>
+    </div>
+    <div class="hint">
+      Understands <code>5x2 @ 80%</code>, <code>3x3 70/75/80%</code>, <code>4x3 @ 70kg</code>,
+      and WodUp's movement names. Lines it doesn't recognise are flagged instead of guessed.
+    </div>
+  </div>
+  <div id="out"></div>
+</section>
+
+<!-- ============ QUICK ============ -->
+<section id="quick">
+  <div class="card">
+    <div class="row">
+      <div style="flex:2">
+        <label for="qmv">Movement</label>
+        <select id="qmv"></select>
+      </div>
+      <div>
+        <label for="qpct">%</label>
+        <input id="qpct" type="number" inputmode="decimal" step="0.5" value="80">
+      </div>
+    </div>
+    <div id="qout" style="margin-top:12px"></div>
+  </div>
+  <div class="card">
+    <label>Full table</label>
+    <table id="qtable"></table>
+    <div class="hint" id="qnote"></div>
+  </div>
+</section>
+
+<!-- ============ SETTINGS ============ -->
+<section id="cfg">
+  <div class="card">
+    <label>Bar</label>
+    <div class="seg" id="barseg"></div>
+  </div>
+
+  <div class="card">
+    <label>Rounding</label>
+    <div class="seg" id="roundseg">
+      <button data-mode="nearest">Nearest</button>
+      <button data-mode="down">Down</button>
+      <button data-mode="up">Up</button>
+    </div>
+    <div class="hint">Always to the closest weight you can <em>actually</em> load with your plates.</div>
+  </div>
+
+  <div class="card">
+    <label>Precision vs. plates to load</label>
+    <div class="seg" id="tolseg">
+      <button data-tol="0">Exact</button>
+      <button data-tol="0.5">±0.5</button>
+      <button data-tol="1">±1</button>
+      <button data-tol="2.5">±2.5</button>
+    </div>
+    <div class="hint">How much weight you're willing to give up so you don't load four small plates per side. <em>Exact</em> hits the number even if you have to go hunting for the 0.5.</div>
+  </div>
+
+  <div class="card">
+    <label>Import PRs from WodUp</label>
+    <div class="drop" id="prDrop">
+      <b>Paste the «PRs &amp; Benchmarks» screenshot</b>
+      and I'll fill in the RMs below
+    </div>
+    <input type="file" id="prFile" accept="image/*" hidden>
+    <div id="prBox"></div>
+  </div>
+
+  <div class="card">
+    <label>Your RMs (kg) — leave at 0 what you don't use</label>
+    <div class="grid" id="maxgrid"></div>
+  </div>
+
+  <div class="card">
+    <label>Available plates (pairs per side)</label>
+    <div id="plateList"></div>
+    <div class="btns">
+      <button class="ghost" id="addPlate">+ Add plate</button>
+      <button class="ghost" id="resetPlates">Reset to typical</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <label>Data</label>
+    <div class="btns">
+      <button class="ghost" id="copyCfg">Copy config JSON</button>
+      <button class="ghost" id="pasteCfg">Paste config JSON</button>
+      <button class="ghost" id="copyUrl">Copy link with my data</button>
+    </div>
+    <div class="hint">
+      Everything is stored in your browser and in the URL <code>#hash</code>. Save this page on your
+      phone (or add it to the home screen) and it works offline.
+    </div>
+  </div>
+</section>
+
+<footer>Your data never leaves the browser. The screenshot reader is downloaded the first time and<br>from then on everything works offline.</footer>
+</div>
+
+<script>
+// ==================== LOGIC START (pure, no DOM — testable) ====================
+
+const MOVEMENTS = [
+  {key:'back_squat',   name:'Back Squat',      aliases:['back squat','squat','bs']},
+  {key:'front_squat',  name:'Front Squat',     aliases:['front squat','fs']},
+  {key:'ohs',          name:'Overhead Squat',  aliases:['overhead squat','ohs']},
+  {key:'clean',        name:'Clean',           aliases:['clean','hang clean']},
+  {key:'power_clean',  name:'Power Clean',     aliases:['power clean','hang power clean']},
+  {key:'squat_clean',  name:'Squat Clean',     aliases:['squat clean','sq clean','hang squat clean']},
+  {key:'clean_jerk',   name:'Clean and Jerk',  aliases:['clean and jerk','clean & jerk','clean+jerk','c&j']},
+  {key:'snatch',       name:'Snatch',          aliases:['snatch','hang snatch','snatch from blocks']},
+  // 'power snatch from blocks' has to be here and not only as 'power snatch':
+  // without this explicit alias, "Power Snatch From Blocks" matched 'snatch from blocks'
+  // (above) because it is the longest substring, and a Snatch max is usually heavier
+  // than a Power Snatch max: it gave a heavier weight than intended. This alias is even
+  // longer, so it wins first.
+  {key:'power_snatch', name:'Power Snatch',    aliases:['power snatch','hang power snatch','power snatch from blocks']},
+  {key:'squat_snatch', name:'Squat Snatch',    aliases:['squat snatch','sq snatch','hang squat snatch']},
+  {key:'push_press',   name:'Push Press',      aliases:['push press']},
+  {key:'push_jerk',    name:'Push Jerk',       aliases:['push jerk']},
+  {key:'split_jerk',   name:'Split Jerk',      aliases:['split jerk']},
+  {key:'jerk',         name:'Jerk',            aliases:['jerk','jerk from rack','jerk dip']},
+  {key:'deadlift',     name:'Deadlift',        aliases:['deadlift','dl']},
+  {key:'snatch_pull',  name:'Snatch Pull',     aliases:['snatch pull','snatch deadlift']},
+  {key:'clean_pull',   name:'Clean Pull',      aliases:['clean pull','clean deadlift']},
+  {key:'strict_press', name:'Strict Press',    aliases:['strict press','military press','shoulder press','ohp']},
+  {key:'bench',        name:'Bench Press',     aliases:['bench press','bench']},
+  {key:'thruster',     name:'Thruster',        aliases:['thruster']},
+  {key:'snatch_balance',name:'Snatch Balance', aliases:['snatch balance']},
+  {key:'rdl',          name:'Romanian Deadlift',aliases:['romanian deadlift','rdl']},
+  {key:'muscle_snatch',name:'Muscle Snatch',   aliases:['muscle snatch']},
+  {key:'muscle_clean', name:'Muscle Clean',    aliases:['muscle clean']},
+  {key:'sots_press',   name:'Sots Press',      aliases:['sots press','sotts press']},
+  {key:'good_morning', name:'Good Morning',    aliases:['good morning']},
+  {key:'ghd_hip_ext',  name:'GHD Hip Extension', aliases:['ghd hip extension','ghd back extension','hip extension']},
+  {key:'ghd_situp',    name:'GHD Sit-Up',       aliases:['ghd sit up','ghd situp','ghd sit-up']},
+];
+
+// ===== ATHLETE START =====
+// WodUp PRs as a starting point (the app overwrites them when a screenshot is
+// imported) and the implied RM from the history. Empty here: everyone enters
+// their own PRs in Settings. `make history` generates data/barra.html with the
+// athlete's numbers inside.
+const SEED_MAXES = {};
+const HIST_MAXES = {};
+// ===== ATHLETE END =====
+
+const DEFAULT_PLATES = [
+  {w:25, pairs:2}, {w:20, pairs:2}, {w:15, pairs:1}, {w:10, pairs:1},
+  {w:5, pairs:1}, {w:2.5, pairs:1}, {w:2, pairs:1}, {w:1.5, pairs:1},
+  {w:1.25, pairs:1}, {w:1, pairs:1}, {w:0.5, pairs:1},
+];
+
+const PLATE_COLORS = {
+  25:'#c8322b', 20:'#2b60c8', 15:'#e0b41f', 10:'#2e9e4f', 5:'#dcdcdc',
+  2.5:'#c8322b', 2:'#2b60c8', 1.5:'#e0b41f', 1.25:'#d97a1f', 1:'#2e9e4f', 0.5:'#dcdcdc',
+};
+
+function norm(s){
+  return String(s).toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-z0-9&+ ]+/g,' ')
+    .replace(/\s+/g,' ').trim();
+}
+
+// All aliases sorted longest first: "power clean" beats "clean".
+// The WOD says "3 Snatch Balances" and "6 Back Squats": plurals are generated
+// automatically so they don't have to be written by hand for every alias.
+function aliasIndex(movements){
+  const seen = new Set();
+  const out = [];
+  const push = (alias, key) => {
+    const a = norm(alias);
+    if(!a || seen.has(a)) return;
+    seen.add(a);
+    out.push({alias:a, key});
+  };
+  for(const m of movements) for(const a of m.aliases){
+    push(a, m.key);
+    const n = norm(a);
+    if(/[a-z]$/.test(n) && !n.endsWith('s')){
+      push(n + (/(ch|sh|x|z)$/.test(n) ? 'es' : 's'), m.key);
+    }
+  }
+  return out.sort((x,y)=>y.alias.length-x.alias.length);
+}
+const ALIASES = aliasIndex(MOVEMENTS);
+
+function findMovement(text, idx){
+  const n = ' ' + norm(text) + ' ';
+  for(const {alias,key} of idx){
+    if(n.includes(' '+alias+' ')) return key;
+  }
+  return null;
+}
+
+function num(s){ const v = parseFloat(String(s).replace(',','.')); return isNaN(v)?null:v; }
+
+// "80%", "70/75/80%", "85 %" -> [80] / [70,75,80] / [85]
+function extractPercents(line){
+  const out = [];
+  const re = /([\d.,]+(?:\s*\/\s*[\d.,]+)*)\s*%/g;
+  let m;
+  while((m = re.exec(line))){
+    for(const part of m[1].split('/')){
+      const v = num(part);
+      if(v !== null) out.push(v);
+    }
+  }
+  return out;
+}
+
+function extractKilos(line){
+  const out = [];
+  const re = /([\d.,]+(?:\s*\/\s*[\d.,]+)*)\s*kgs?\b/gi;
+  let m;
+  while((m = re.exec(line))){
+    for(const part of m[1].split('/')){
+      const v = num(part);
+      if(v !== null) out.push(v);
+    }
+  }
+  return out;
+}
+
+// "5x2", "3 sets of 10 reps", "(6 sets)", "6 Back Squats". May return only one half.
+function extractSetsReps(line){
+  const l = norm(line);
+  let m = line.match(/(\d+)\s*[x×*]\s*(\d+)/i);
+  if(m) return {sets:parseInt(m[1],10), reps:parseInt(m[2],10)};
+  m = l.match(/(\d+)\s*sets?\s*of\s*(\d+)/);
+  if(m) return {sets:parseInt(m[1],10), reps:parseInt(m[2],10)};
+  const out = {};
+  m = l.match(/\(?\s*(\d+)\s*sets?\b/);
+  if(m) out.sets = parseInt(m[1],10);
+  m = l.match(/(\d+)\s*reps?\b/);
+  if(m) out.reps = parseInt(m[1],10);
+  return (out.sets || out.reps) ? out : null;
+}
+
+// Time units, shared by intervals and rests so both understand the same words.
+const MIN = '(?:min|mins|minute|minutes|m)';
+const SEC = '(?:s|sec|secs|second|seconds)';
+
+// "Every 2 minutes, for 12 minutes (6 sets)", "EMOM 12", "every 90 seconds".
+// It's the header WodUp puts above the movement, and the watch timers come
+// from here.
+function extractInterval(line){
+  // Same as with rests: norm() is NOT usable here, it eats the colons
+  // and would turn "2:30" into "2 30".
+  const l = String(line).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const out = {everySec:null, totalSec:null, sets:null};
+
+  // "every 2:30"
+  let m = l.match(/every\s+(\d+)\s*:\s*(\d{2})/);
+  if(m) out.everySec = parseInt(m[1],10)*60 + parseInt(m[2],10);
+  // "every 2 minutes"
+  if(out.everySec === null){
+    m = l.match(new RegExp('every\\s+(\\d+)\\s*' + MIN + '\\b'));
+    if(m) out.everySec = parseInt(m[1],10) * 60;
+  }
+  // "every 75 seconds"
+  if(out.everySec === null){
+    m = l.match(new RegExp('every\\s+(\\d+)\\s*' + SEC + '\\b'));
+    if(m) out.everySec = parseInt(m[1],10);
+  }
+  // Bare "Every minute": no number means 60 seconds
+  if(out.everySec === null && /every\s+(?:single\s+)?minute\b/.test(l)){
+    out.everySec = 60;
+  }
+
+  // "for 17:30" before "for 25 minutes"
+  m = l.match(/for\s+(\d+)\s*:\s*(\d{2})/);
+  if(m) out.totalSec = parseInt(m[1],10)*60 + parseInt(m[2],10);
+  if(out.totalSec === null){
+    m = l.match(new RegExp('for\\s+(\\d+)\\s*' + MIN + '\\b'));
+    if(m) out.totalSec = parseInt(m[1],10) * 60;
+  }
+
+  m = l.match(/\bemom\s*(\d+)/);
+  if(m){ out.everySec = out.everySec || 60; out.totalSec = out.totalSec || parseInt(m[1],10)*60; }
+
+  m = l.match(/(\d+)\s*sets?\b/);
+  if(m) out.sets = parseInt(m[1],10);
+
+  if(out.everySec && out.totalSec && !out.sets) out.sets = Math.round(out.totalSec / out.everySec);
+  if(out.everySec && out.sets && !out.totalSec) out.totalSec = out.everySec * out.sets;
+
+  return out.everySec ? out : null;
+}
+
+// "1 Power Snatch + 3 Snatch Balances" -> two parts with their reps.
+// Cut before the @ so "70% of 1RM" doesn't trip it up.
+function splitComplex(line, idx){
+  const body = line.split('@')[0];
+  return body.split('+').map(chunk => {
+    const txt = chunk.trim();
+    if(!txt) return null;
+    const key = findMovement(txt, idx);
+    const m = txt.match(/^\s*(\d+)\s+\D/);
+    return {
+      key,
+      label: key ? MOVEMENTS.find(x => x.key === key).name : txt.replace(/^\s*\d+\s+/, ''),
+      reps: m ? parseInt(m[1],10) : null,
+    };
+  }).filter(p => p && (p.key || /[a-z]/i.test(p.label)));
+}
+
+// When the WOD names a movement you have no RM of your own for, the closest
+// relative's RM is used. The table is short on purpose: only pairs where the
+// borrowed RM does NOT end up above the real one. A Power Snatch, for example,
+// does not inherit from the Snatch, because it would come out heavier than intended.
+const RM_SUBSTITUTE = {
+  jerk:         ['push_jerk', 'split_jerk'],
+  squat_snatch: ['snatch'],
+  squat_clean:  ['clean'],
+};
+// No Snatch Balance -> Overhead Squat: in a complex the balance usually goes
+// heavier than the OHS, and lending it that RM would make it govern instead of
+// the movement that actually limits. Without its own RM, it simply doesn't take part.
+
+// Returns the RM to use and where it comes from, or null if there is none.
+//
+// Three sources, in this order:
+//   1. Whatever you typed by hand in Settings. You always win.
+//   2. The implied RM from the history (HIST_MAXES), if it is heavier than the PR.
+//   3. The WodUp PR: SEED_MAXES, or the one imported from a screenshot.
+//
+// The history beats the PR because the PR goes stale. Athletes rarely test a
+// max single, so WodUp can show a Front Squat PR 12 kg below the max the coach
+// is already programming from. Between the two the heavier wins, because the
+// heavier one reflects what is actually being lifted.
+//
+// `hist` and `manual` are optional: without them it behaves as it always did.
+function effectiveRM(key, maxes, hist, manual){
+  if(!key) return null;
+  const isManual = !!(manual && manual[key]);
+  const pr = (maxes && maxes[key] > 0) ? maxes[key] : 0;
+  const h = (hist && hist[key] && !isManual) ? hist[key] : null;
+
+  if(h && h.kg > pr) return {kg:h.kg, from:key, exact:true, source:'history', hist:h, pr:pr||null};
+  if(pr) return {kg:pr, from:key, exact:true, source: isManual ? 'manual' : 'pr',
+                 hist: (hist && hist[key]) || null};
+
+  for(const alt of (RM_SUBSTITUTE[key] || [])){
+    const r = effectiveRM(alt, maxes, hist, manual);
+    if(r) return Object.assign({}, r, {from: alt, exact: false});
+  }
+  return null;
+}
+
+// In a complex the weakest link governs: 70% of "3 Front Squats + 1 Jerk"
+// comes from the jerk, not the squat, or the bar crushes you.
+function governingMovement(parts, maxes, hist, manual){
+  let best = null;
+  for(const p of parts){
+    const rm = effectiveRM(p.key, maxes, hist, manual);
+    if(!rm) continue;
+    if(!best || rm.kg < best.rm.kg) best = {key: p.key, rm};
+  }
+  return best ? best.key : null;
+}
+
+// A lift picked by hand only counts if it belongs to this block and has an RM.
+// Without that check a choice made for one complex leaked into whatever block
+// came next and computed, say, a Snatch off the Front Squat RM.
+function governingFor(parts, override, maxes, hist, manual){
+  if(override && parts.some(p => p.key === override) && effectiveRM(override, maxes, hist, manual)) return override;
+  return governingMovement(parts, maxes, hist, manual);
+}
+
+// "Rest 2:00", "rest 90s", "rest 2 min" -> seconds.
+function extractRest(line){
+  const l = String(line).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  if(!/\brest\b/.test(l)) return null;
+  let m = l.match(/(\d+)\s*:\s*(\d{2})/);
+  if(m) return parseInt(m[1],10)*60 + parseInt(m[2],10);
+  m = l.match(new RegExp('(\\d+)\\s*' + MIN + '\\b'));
+  if(m) return parseInt(m[1],10)*60;
+  m = l.match(new RegExp('(\\d+)\\s*' + SEC + '\\b'));
+  if(m) return parseInt(m[1],10);
+  return null;
+}
+
+function cleanLine(l){
+  // bullets, numbering and the "A." / "B)" labels coaches use
+  return l.replace(/^\s*(?:[-*•·]|\d+[.)]|[A-Za-z][.)])\s+/, '').replace(/\s*:\s*$/,'').trim();
+}
+
+// Real text doesn't put the movement and the load on the same line: WodUp puts
+// an interval header, the movement below it and sometimes the load on yet
+// another line. The parser carries that context downwards.
+function parseWod(text, idx){
+  const lines = String(text).split(/\r?\n/).map(cleanLine).filter(l => l.length > 0);
+  const blocks = [];
+  let cur = null;
+  let pendingInterval = null;
+
+  const mk = (raw, parts, sr, percents, kilos) => {
+    const b = {
+      raw, parts,
+      movement: parts.length === 1 ? parts[0].key : null,
+      scheme: null, interval: null, percents, kilos, restSec: null,
+    };
+    if(pendingInterval){ b.interval = pendingInterval; pendingInterval = null; }
+    b.scheme = mergeScheme(b, sr);
+    blocks.push(b);
+    return b;
+  };
+
+  const mergeScheme = (b, sr) => {
+    const sets = (sr && sr.sets) || (b.interval && b.interval.sets) || null;
+    let reps = (sr && sr.reps) || null;
+    if(reps === null && b.parts.length === 1 && b.parts[0].reps !== null) reps = b.parts[0].reps;
+    return (sets || reps) ? {sets, reps} : null;
+  };
+
+  for(const line of lines){
+    const parts = splitComplex(line, idx);
+    const withMov = parts.filter(p => p.key);
+    const percents = extractPercents(line);
+    const kilos = percents.length ? [] : extractKilos(line);
+    const sr = extractSetsReps(line);
+    const interval = extractInterval(line);
+    const rest = extractRest(line);
+    const hasLoad = percents.length > 0 || kilos.length > 0;
+
+    if(!withMov.length && interval){           // interval header
+      pendingInterval = interval;
+      continue;
+    }
+    if(withMov.length){                        // a movement opens a block
+      cur = mk(line, parts, sr, percents, kilos);
+      if(interval) cur.interval = interval;
+      if(rest) cur.restSec = rest;
+      continue;
+    }
+    if(rest && !hasLoad){
+      if(cur && cur.restSec == null) cur.restSec = rest;
+      continue;
+    }
+    if(!hasLoad && sr && cur && !cur.scheme){
+      cur.scheme = mergeScheme(cur, sr);   // "3 sets of 10 reps" with no load: the scheme still counts
+      continue;
+    }
+    if(hasLoad){
+      if(cur && !cur.percents.length && !cur.kilos.length){
+        cur.percents = percents;               // the load for the movement above
+        cur.kilos = kilos;
+        cur.scheme = mergeScheme(cur, sr) || cur.scheme;
+        cur.raw += ' · ' + line;
+      } else if(cur && cur.parts.length){
+        cur = mk(line, cur.parts, sr, percents, kilos);   // another set of the same one
+      } else {
+        cur = mk(line, [], sr, percents, kilos);          // orphan load: gets flagged
+      }
+      continue;
+    }
+    // screenshot noise (headers, notes, buttons): dropped
+  }
+  return blocks;
+}
+
+// WodUp's "PRs & Benchmarks" screen is "Movement .... 72 kg" per row.
+// Depending on how the screenshot comes out, the name and the number may land on different lines.
+function parsePRs(text, idx){
+  const out = {};
+  const lines = String(text).split(/\r?\n/).map(cleanLine).filter(l => l.length > 0);
+  let pending = null;
+  for(const line of lines){
+    const mv = findMovement(line, idx);
+    let kgs = extractKilos(line);
+    if(!kgs.length){
+      const m = line.match(/([\d]+(?:[.,]\d+)?)\s*$/);   // bare number at the end of the row
+      if(m){ const v = num(m[1]); if(v !== null) kgs = [v]; }
+    }
+    if(mv && kgs.length){ out[mv] = kgs[kgs.length-1]; pending = null; }
+    else if(mv){ pending = mv; }
+    else if(kgs.length && pending){ out[pending] = kgs[kgs.length-1]; pending = null; }
+  }
+  return out;
+}
+
+// --- Plates: which per-side weights can actually be loaded ---
+// Quarter kilos as the integer unit, to avoid fighting with floats.
+const Q = 4;
+function achievablePerSide(plates, capKg=400){
+  const map = new Map([[0, []]]);
+  const sorted = plates.filter(p => p.w > 0 && p.pairs > 0).sort((a,b) => b.w - a.w);
+  for(const p of sorted){
+    const step = Math.round(p.w * Q);
+    const add = new Map();
+    for(const [q, combo] of map){
+      for(let n = 1; n <= p.pairs; n++){
+        const nq = q + step * n;
+        if(nq > capKg * Q) break;
+        if(!map.has(nq) && !add.has(nq)) add.set(nq, combo.concat([{w:p.w, n}]));
+      }
+    }
+    for(const [k,v] of add) map.set(k,v);
+  }
+  return map;
+}
+
+const plateCount = combo => combo.reduce((s,p) => s + p.n, 0);
+
+// mode: 'nearest' | 'down' | 'up'
+// tolKg: margin you accept to give up in exchange for loading fewer plates.
+//        0 = spot on to the gram even if you end up with four plates per side.
+function bestLoad(targetKg, barKg, achievable, mode='nearest', tolKg=0){
+  if(targetKg < barKg - 1e-9){
+    return {ok:false, reason:'below-bar', bar:barKg, target:targetKg};
+  }
+  const wantQ = (targetKg - barKg) / 2 * Q;   // per side, in quarters
+  // On light loads 1 kg is a big percentage: the margin is capped at 2% of the target.
+  const effTol = Math.min(tolKg, targetKg * 0.02);
+  const tolQ = (effTol / 2) * Q;              // the tolerance is on the total, not per side
+  const cands = [];
+  let minAd = Infinity;
+  for(const [q, combo] of achievable){
+    const diff = q - wantQ;
+    if(mode === 'down' && diff > 1e-9) continue;
+    if(mode === 'up'   && diff < -1e-9) continue;
+    const ad = Math.abs(diff);
+    if(ad < minAd) minAd = ad;
+    cands.push({ad, q, combo, diff});
+  }
+  if(!cands.length) return {ok:false, reason:'unreachable', bar:barKg, target:targetKg};
+
+  // Anything within the margin is acceptable; among those, the one with fewest plates.
+  const limit = Math.max(minAd, tolQ) + 1e-9;
+  let best = null;
+  for(const c of cands){
+    if(c.ad > limit) continue;
+    const n = plateCount(c.combo);
+    if(!best) { best = c; best.n = n; continue; }
+    if(n < best.n ||
+       (n === best.n && c.ad < best.ad - 1e-9) ||
+       (n === best.n && Math.abs(c.ad - best.ad) < 1e-9 && c.q < best.q)){
+      best = c; best.n = n;
+    }
+  }
+  const total = barKg + (best.q / Q) * 2;
+  return {
+    ok: true,
+    bar: barKg,
+    target: targetKg,
+    total: Math.round(total * 100) / 100,
+    perSide: Math.round((best.q / Q) * 100) / 100,
+    plates: best.combo,
+    delta: Math.round((total - targetKg) * 100) / 100,
+  };
+}
+
+function pctToKg(max, pct){ return max * pct / 100; }
+
+// ==================== LOGIC END ====================
+
+
+// ==================== STATE / PERSISTENCE ====================
+const BARS = [15, 20, 10, 7.5];
+
+function defaultState(){
+  const maxes = {};
+  for(const m of MOVEMENTS) maxes[m.key] = SEED_MAXES[m.key] || 0;
+  // `manual` marks the RMs you typed by hand in Settings. Without this mark
+  // there would be no way to tell your number apart from the seeded PR, and
+  // the history would silently overwrite your edit.
+  return {bar:15, mode:'nearest', tol:1, maxes, manual:{},
+          plates:DEFAULT_PLATES.map(p=>({...p})), wod:''};
+}
+
+// Shortcuts: in the app the RM is always resolved with all three sources.
+const RM  = key   => effectiveRM(key, S.maxes, HIST_MAXES, S.manual);
+
+// localStorage may not exist depending on where this is opened: shim it and move on.
+const store = (() => {
+  try{
+    const k='__t'; localStorage.setItem(k,'1'); localStorage.removeItem(k);
+    return {get:k=>localStorage.getItem(k), set:(k,v)=>localStorage.setItem(k,v)};
+  }catch(e){
+    const mem = {};
+    return {get:k=>mem[k]??null, set:(k,v)=>{mem[k]=v;}};
+  }
+})();
+
+function loadState(){
+  const base = defaultState();
+  let raw = null;
+  if(location.hash.length > 1){
+    try{ raw = JSON.parse(decodeURIComponent(location.hash.slice(1))); }catch(e){}
+  }
+  if(!raw){
+    try{ raw = JSON.parse(store.get('barra') || 'null'); }catch(e){}
+  }
+  if(!raw) return base;
+  return {
+    bar: typeof raw.bar === 'number' ? raw.bar : base.bar,
+    mode: ['nearest','down','up'].includes(raw.mode) ? raw.mode : 'nearest',
+    tol: [0,0.5,1,2.5].includes(raw.tol) ? raw.tol : 1,
+    maxes: Object.assign(base.maxes, raw.maxes || {}),
+    manual: (raw.manual && typeof raw.manual === 'object') ? raw.manual : {},
+    plates: Array.isArray(raw.plates) && raw.plates.length ? raw.plates : base.plates,
+    wod: typeof raw.wod === 'string' ? raw.wod : '',
+  };
+}
+
+let S = loadState();
+let ACH = achievablePerSide(S.plates);
+
+function save(){
+  const json = JSON.stringify(S);
+  store.set('barra', json);
+  try{ history.replaceState(null, '', '#' + encodeURIComponent(json)); }catch(e){}
+  ACH = achievablePerSide(S.plates);
+  renderCtx();
+}
+
+// ==================== RENDER ====================
+const $ = s => document.querySelector(s);
+const el = (t,c,txt) => { const e=document.createElement(t); if(c)e.className=c; if(txt!=null)e.textContent=txt; return e; };
+const fmt = n => (Math.round(n*100)/100).toString();
+
+// "2026-10-14" -> "Oct 14" (or whatever the browser locale says). Built from the
+// parts so the date doesn't shift a day with the time zone.
+const shortDate = iso => {
+  const p = String(iso).split('-').map(x => parseInt(x,10));
+  return new Date(p[0], p[1]-1, p[2]).toLocaleDateString(undefined, {day:'numeric', month:'short'});
+};
+
+// Where the RM used for the calculation comes from. No silent fallbacks: if the
+// number is not your WodUp PR, it has to show on screen.
+function rmSource(rm){
+  if(!rm) return '';
+  if(rm.source === 'history'){
+    return 'RM ' + fmt(rm.kg) + ' kg, from the history (' + shortDate(rm.hist.date)
+         + ', ' + rm.hist.sessions + ' sessions)'
+         + (rm.pr ? '. Your WodUp PR is still ' + fmt(rm.pr) + ' kg.' : '.');
+  }
+  if(rm.source === 'manual') return 'RM ' + fmt(rm.kg) + ' kg, set by you in Settings.';
+  if(rm.hist) return 'RM ' + fmt(rm.kg) + ' kg (your PR). The history gives ' + fmt(rm.hist.kg) + ' kg.';
+  return '';
+}
+
+function renderCtx(){
+  const n = Object.values(S.maxes).filter(v=>v>0).length;
+  $('#ctx').textContent = `bar ${fmt(S.bar)} kg · ${n} RM${n===1?'':'s'}`;
+}
+
+function platesEl(load){
+  const box = el('div','plates');
+  if(!load.plates.length){
+    box.appendChild(el('span','noplate','empty bar'));
+    return box;
+  }
+  for(const p of load.plates){
+    const c = PLATE_COLORS[p.w] || '#7a869a';
+    const light = ['#dcdcdc','#e0b41f'].includes(c);
+    const chip = el('span','plate');
+    chip.style.background = c;
+    chip.style.color = light ? '#141414' : '#fff';
+    chip.innerHTML = (p.n>1 ? '<i>'+p.n+'×</i>' : '') + fmt(p.w);
+    box.appendChild(chip);
+  }
+  box.appendChild(el('span','noplate', '/side ' + fmt(load.perSide) + ' kg'));
+  return box;
+}
+
+function setRow(labelTxt, targetKg){
+  const load = bestLoad(targetKg, S.bar, ACH, S.mode, S.tol);
+  const row = el('div','set');
+  row.appendChild(el('span','pct',labelTxt));
+  if(!load.ok){
+    const k = el('span','kg', load.reason === 'below-bar' ? '< bar' : '—');
+    row.appendChild(k);
+    row.appendChild(el('span','noplate',
+      load.reason === 'below-bar'
+        ? fmt(targetKg)+' kg is lighter than the bar'
+        : 'not loadable with your plates'));
+    return row;
+  }
+  const kg = el('span','kg');
+  kg.innerHTML = fmt(load.total) + '<small>kg</small>';
+  row.appendChild(kg);
+  const exact = Math.abs(load.delta) < 1e-9;
+  row.appendChild(el('span', 'delta' + (exact?' exact':''),
+    exact ? '=' + fmt(targetKg) : (load.delta>0?'+':'') + fmt(load.delta)));
+  row.appendChild(platesEl(load));
+  return row;
+}
+
+// Lifts picked by hand in a complex, keyed by the block's text (not its
+// position, which the next workout reuses).
+const govOverride = {};
+const governing = b => governingFor(b.parts, govOverride[b.raw], S.maxes, HIST_MAXES, S.manual);
+
+function fmtSec(t){
+  return t >= 60 ? Math.floor(t/60) + ':' + String(t%60).padStart(2,'0') : t + 's';
+}
+
+function renderWod(){
+  const out = $('#out');
+  out.innerHTML = '';
+  const blocks = parseWod($('#wodtext').value, ALIASES);
+  if(!blocks.length){
+    out.appendChild(el('div','hint','Paste the workout (or a screenshot) and hit Calculate.'));
+    return;
+  }
+
+  blocks.forEach((b, i) => {
+    const card = el('div','res');
+
+    // --- header: complex name(s) + scheme/interval ---
+    const head = el('div','res-h');
+    const title = b.parts.length
+      ? b.parts.map(p => p.label).join(' + ')
+      : b.raw;
+    head.appendChild(el('div','mv', title));
+
+    const meta = [];
+    if(b.scheme && b.scheme.sets && b.scheme.reps) meta.push(b.scheme.sets+'×'+b.scheme.reps);
+    else if(b.scheme && b.scheme.sets) meta.push(b.scheme.sets+' sets');
+    else if(b.scheme && b.scheme.reps) meta.push(b.scheme.reps+' reps');
+    if(b.interval) meta.push('every ' + fmtSec(b.interval.everySec));
+    if(b.restSec) meta.push('rest ' + fmtSec(b.restSec));
+    if(meta.length) head.appendChild(el('div','scheme', meta.join(' · ')));
+    card.appendChild(head);
+
+    // --- complex breakdown ---
+    // only useful if it carries reps per part; otherwise it would repeat the title
+    if(b.parts.length > 1 && b.parts.some(p => p.reps)){
+      card.appendChild(el('div','hint',
+        b.parts.map(p => (p.reps ? p.reps + ' ' : '') + p.label).join('  +  ')));
+    }
+
+    const sets = el('div','sets');
+
+    if(b.kilos.length){
+      b.kilos.forEach((k,j) => sets.appendChild(setRow(b.kilos.length>1?('#'+(j+1)):'kg', k)));
+      card.appendChild(sets);
+      if(!b.parts.length) card.appendChild(el('div','hint',
+        'No lift on this line: on the watch it will be a generic step with this weight.'));
+      out.appendChild(card);
+      return;
+    }
+
+    if(!b.percents.length){
+      card.appendChild(el('div','hint','No load on this line.'));
+      out.appendChild(card);
+      return;
+    }
+
+    // --- which RM governs ---
+    const gov = governing(b);
+    if(!gov){
+      card.classList.add('err');
+      const noRM = b.parts.filter(p => p.key && !RM(p.key)).map(p => p.label);
+      const unknown = b.parts.filter(p => !p.key).map(p => p.label);
+      card.appendChild(el('div','err-txt',
+        noRM.length ? 'No RM saved for ' + noRM.join(', ') + '. Set it in Settings.'
+        : unknown.length ? "Don't recognise " + unknown.join(', ') + '. Use the Quick tab.'
+        : "Don't know which RM to calculate this from."));
+      out.appendChild(card);
+      return;
+    }
+
+    const rm = RM(gov);
+    const max = rm.kg;
+    b.percents.forEach(pc => sets.appendChild(setRow(fmt(pc)+'%', pctToKg(max, pc))));
+    card.appendChild(sets);
+
+    // --- note: which RM it was calculated from, and an option to change it ---
+    const govName = MOVEMENTS.find(m => m.key === gov).name;
+    const candidates = b.parts.filter(p => p.key && RM(p.key));
+    const note = el('div','hint');
+
+    if(candidates.length > 1){
+      note.appendChild(document.createTextNode('Calculated from '));
+      const sel = el('select');
+      sel.style.cssText = 'width:auto;display:inline-block;padding:3px 7px;font-size:12.5px;margin:0 4px';
+      for(const c of candidates){
+        const o = el('option', null, c.label + ' ' + fmt(RM(c.key).kg));
+        o.value = c.key;
+        if(c.key === gov) o.selected = true;
+        sel.appendChild(o);
+      }
+      sel.onchange = () => { govOverride[b.raw] = sel.value; renderWod(); };
+      note.appendChild(sel);
+      note.appendChild(document.createTextNode(
+        govOverride[b.raw] === gov ? '(picked by you).' : '— the lowest in the complex, which is the one that governs.'));
+    } else {
+      note.appendChild(document.createTextNode('RM ' + govName + ' ' + fmt(max) + ' kg.'));
+    }
+
+    // Where that RM comes from. If it's from the history and not your PR, say so.
+    const src = rmSource(rm);
+    if(src){
+      const line = el('div', null, src);
+      if(rm.source === 'history') line.style.color = 'var(--ok)';
+      note.appendChild(line);
+    }
+
+    // If the RM is borrowed, make it visible: your jerk is not your push jerk.
+    if(!rm.exact){
+      const borrowedFrom = MOVEMENTS.find(m => m.key === rm.from).name;
+      const warning = el('div', null,
+        'No RM for ' + govName + ': using ' + borrowedFrom + ' (' + fmt(rm.kg) + ' kg).');
+      warning.style.color = 'var(--warn)';
+      note.appendChild(warning);
+    }
+
+    const orphans = b.parts.filter(p => !p.key || !RM(p.key)).map(p => p.label);
+    if(orphans.length){
+      note.appendChild(el('div', null, 'No RM: ' + orphans.join(', ') + '.'));
+    }
+    card.appendChild(note);
+    out.appendChild(card);
+  });
+}
+
+function renderQuick(){
+  const sel = $('#qmv');
+  if(!sel.options.length){
+    for(const m of MOVEMENTS){
+      const o = el('option', null, m.name);
+      o.value = m.key;
+      sel.appendChild(o);
+    }
+  }
+  const key = sel.value || MOVEMENTS[0].key;
+  // Use the effective RM, not raw S.maxes: otherwise the Quick tab would give
+  // a different number from Session for the same movement.
+  const rm = RM(key);
+  const max = rm ? rm.kg : 0;
+  const qout = $('#qout');
+  qout.innerHTML = '';
+  if(!max){
+    qout.appendChild(el('div','err-txt','No RM for this movement. Set it in Settings.'));
+    $('#qtable').innerHTML = '';
+    return;
+  }
+  const pct = parseFloat($('#qpct').value) || 0;
+  qout.appendChild(setRow(fmt(pct)+'%', pctToKg(max,pct)));
+  const src = rmSource(rm);
+  if(src) qout.appendChild(el('div','hint', src));
+
+  const t = $('#qtable');
+  t.innerHTML = '<tr><th>%</th><th>Target</th><th>Loadable</th><th>Per side</th></tr>';
+  let belowBar = 0;
+  for(let p = 40; p <= 105; p += 2.5){
+    const target = pctToKg(max,p);
+    const load = bestLoad(target, S.bar, ACH, S.mode, S.tol);
+    const tr = el('tr');
+    if(p % 10 === 0) tr.className = 'key';
+    tr.appendChild(el('td', null, fmt(p)+'%'));
+    tr.appendChild(el('td', null, fmt(target)));
+    if(load.ok){
+      tr.appendChild(el('td','n', fmt(load.total)));
+      tr.appendChild(el('td', null, fmt(load.perSide)));
+    } else if(load.reason === 'below-bar'){
+      belowBar++;
+      tr.appendChild(el('td','dim', 'empty bar'));
+      tr.appendChild(el('td','dim', fmt(S.bar)));
+    } else {
+      tr.appendChild(el('td','n', '—'));
+      tr.appendChild(el('td', null, '—'));
+    }
+    t.appendChild(tr);
+  }
+  const note = $('#qnote');
+  note.textContent = belowBar
+    ? 'Percentages below ' + fmt(S.bar) + " kg can't be loaded with this bar. "
+      + 'If your box has a 10 kg bar, change it in Settings.'
+    : '';
+}
+
+function renderCfg(){
+  // bar
+  const bs = $('#barseg');
+  bs.innerHTML = '';
+  for(const b of BARS){
+    const btn = el('button', S.bar===b?'on':'', fmt(b)+' kg');
+    btn.onclick = () => { S.bar = b; save(); renderCfg(); renderQuick(); renderWod(); };
+    bs.appendChild(btn);
+  }
+  // rounding
+  for(const btn of $('#roundseg').children){
+    btn.classList.toggle('on', btn.dataset.mode === S.mode);
+    btn.onclick = () => { S.mode = btn.dataset.mode; save(); renderCfg(); renderQuick(); renderWod(); };
+  }
+  // precision
+  for(const btn of $('#tolseg').children){
+    btn.classList.toggle('on', parseFloat(btn.dataset.tol) === S.tol);
+    btn.onclick = () => { S.tol = parseFloat(btn.dataset.tol); save(); renderCfg(); renderQuick(); renderWod(); };
+  }
+  // maxes
+  const g = $('#maxgrid');
+  g.innerHTML = '';
+  for(const m of MOVEMENTS){
+    const h = HIST_MAXES[m.key];
+    const lbl = el('label', null, m.name);
+    if(h){
+      // Which RM is really being used and why. Without this, changing a number
+      // here and seeing a different one in Session would have no explanation.
+      const foot = el('div', null, S.manual[m.key]
+        ? 'history ' + fmt(h.kg) + ' kg (' + shortDate(h.date) + ') — ignored, yours wins'
+        : (h.kg > (S.maxes[m.key]||0)
+            ? 'using ' + fmt(h.kg) + ' kg from the history (' + shortDate(h.date) + ')'
+            : 'history ' + fmt(h.kg) + ' kg (' + shortDate(h.date) + ')'));
+      foot.style.cssText = 'font-size:11px;font-weight:400;text-transform:none;letter-spacing:0;color:var(--dim);margin-top:2px';
+      if(!S.manual[m.key] && h.kg > (S.maxes[m.key]||0)) foot.style.color = 'var(--ok)';
+      if(S.manual[m.key]){
+        const revert = el('button', 'ghost', 'use history');
+        revert.style.cssText = 'padding:2px 7px;font-size:11px;margin-left:6px';
+        revert.onclick = () => { delete S.manual[m.key]; save(); renderCfg(); renderQuick(); renderWod(); };
+        foot.appendChild(revert);
+      }
+      lbl.appendChild(foot);
+    }
+    g.appendChild(lbl);
+    const i = el('input');
+    i.type='number'; i.inputMode='decimal'; i.step='0.5'; i.value = S.maxes[m.key] || 0;
+    i.onchange = () => {
+      S.maxes[m.key] = parseFloat(i.value)||0;
+      S.manual[m.key] = true;   // you typed it: from now on yours wins
+      save(); renderCfg(); renderQuick(); renderWod();
+    };
+    g.appendChild(i);
+  }
+  // plates
+  const pl = $('#plateList');
+  pl.innerHTML = '';
+  S.plates.slice().sort((a,b)=>b.w-a.w).forEach(p => {
+    const row = el('div','plate-row');
+    const sw = el('div','sw');
+    sw.style.background = PLATE_COLORS[p.w] || '#7a869a';
+    row.appendChild(sw);
+    row.appendChild(el('span', null, fmt(p.w)+' kg'));
+    const n = el('input');
+    n.type='number'; n.inputMode='numeric'; n.min='0'; n.step='1'; n.value = p.pairs;
+    n.onchange = () => {
+      const t = S.plates.find(x => x.w === p.w);
+      t.pairs = Math.max(0, parseInt(n.value,10)||0);
+      save(); renderQuick(); renderWod();
+    };
+    row.appendChild(n);
+    const del = el('button', null, '×');
+    del.onclick = () => { S.plates = S.plates.filter(x => x.w !== p.w); save(); renderCfg(); renderQuick(); renderWod(); };
+    row.appendChild(del);
+    pl.appendChild(row);
+  });
+}
+
+// ==================== EVENTS ====================
+for(const b of document.querySelectorAll('nav button')){
+  b.onclick = () => {
+    document.querySelectorAll('nav button').forEach(x => x.classList.toggle('on', x === b));
+    document.querySelectorAll('section').forEach(s => s.classList.toggle('on', s.id === b.dataset.tab));
+    if(b.dataset.tab === 'quick') renderQuick();
+    if(b.dataset.tab === 'cfg') renderCfg();
+  };
+}
+$('#calc').onclick = () => { S.wod = $('#wodtext').value; save(); renderWod(); };
+$('#wodtext').value = S.wod;
+$('#qmv').onchange = renderQuick;
+$('#qpct').oninput = renderQuick;
+
+$('#addPlate').onclick = () => {
+  const v = prompt('Plate weight in kg (for example 1.25)');
+  const w = num(v);
+  if(w === null || w <= 0) return;
+  if(!S.plates.some(p => p.w === w)) S.plates.push({w, pairs:1});
+  save(); renderCfg(); renderQuick(); renderWod();
+};
+$('#resetPlates').onclick = () => {
+  S.plates = DEFAULT_PLATES.map(p => ({...p}));
+  save(); renderCfg(); renderQuick(); renderWod();
+};
+$('#copyCfg').onclick = () => {
+  navigator.clipboard.writeText(JSON.stringify(S, null, 2))
+    .then(() => alert('Config copied.'), () => alert("Couldn't copy."));
+};
+$('#pasteCfg').onclick = () => {
+  const v = prompt('Paste the config JSON here');
+  if(!v) return;
+  try{
+    const raw = JSON.parse(v);
+    S = Object.assign(defaultState(), raw);
+    save(); renderCfg(); renderQuick(); renderWod();
+    $('#wodtext').value = S.wod || '';
+  }catch(e){ alert("That JSON isn't valid."); }
+};
+$('#copyUrl').onclick = () => {
+  navigator.clipboard.writeText(location.href)
+    .then(() => alert('Link copied.'), () => alert("Couldn't copy."));
+};
+
+// ==================== EXPORT FOR THE WATCH ====================
+// What garmin.py consumes. Everything comes resolved: kilos, plates and who
+// governs each complex, so the script doesn't have to reimplement the parser.
+function exportSession(){
+  const blocks = parseWod($('#wodtext').value, ALIASES);
+  const out = [];
+
+  blocks.forEach((b, i) => {
+    const gov = governing(b);
+    const loads = [];
+
+    if(b.kilos.length){
+      for(const k of b.kilos){
+        const l = bestLoad(k, S.bar, ACH, S.mode, S.tol);
+        if(l.ok) loads.push({pct:null, targetKg:k, kg:l.total, perSideKg:l.perSide, plates:l.plates});
+      }
+    } else if(b.percents.length && gov){
+      const rm = RM(gov);
+      for(const pc of b.percents){
+        const target = pctToKg(rm.kg, pc);
+        const l = bestLoad(target, S.bar, ACH, S.mode, S.tol);
+        if(l.ok) loads.push({pct:pc, targetKg:Math.round(target*100)/100, kg:l.total, perSideKg:l.perSide, plates:l.plates});
+      }
+    }
+    if(!loads.length) return;   // no resolvable load, nothing goes to the watch
+
+    out.push({
+      title: b.parts.map(p => p.label).join(' + ') || b.raw,
+      parts: b.parts.map(p => ({key:p.key, label:p.label, reps:p.reps})),
+      governing: gov,
+      governingMax: gov ? RM(gov).kg : null,
+      governingFrom: gov ? RM(gov).from : null,
+      governingSource: gov ? RM(gov).source : null,
+      sets: b.scheme && b.scheme.sets ? b.scheme.sets : null,
+      reps: b.scheme && b.scheme.reps ? b.scheme.reps : null,
+      intervalSec: b.interval ? b.interval.everySec : null,
+      restSec: b.restSec,
+      loads,
+    });
+  });
+
+  return {app:'barra', version:1, bar:S.bar, blocks:out};
+}
+
+$('#expJson').onclick = () => {
+  const data = exportSession();
+  if(!data.blocks.length){ alert('There are no blocks with a load to export.'); return; }
+  const txt = JSON.stringify(data, null, 2);
+  navigator.clipboard.writeText(txt).then(
+    () => alert(data.blocks.length + ' block(s) copied. Hand it to garmin.py.'),
+    () => { $('#wodtext').value = txt; alert("Couldn't copy; the JSON is in the text box instead."); }
+  );
+};
+
+// ==================== SCREENSHOT -> TEXT (OCR) ====================
+// The library is downloaded only the first time you paste a screenshot and stays
+// cached; from then on it works offline. ?ocr=<base> points to local copies.
+const OCR_LOCAL = new URLSearchParams(location.search).get('ocr');
+const OCR = OCR_LOCAL ? {
+  lib:    OCR_LOCAL + '/tesseract.js/dist/tesseract.min.js',
+  worker: OCR_LOCAL + '/tesseract.js/dist/worker.min.js',
+  core:   OCR_LOCAL + '/tesseract.js-core',
+  lang:   OCR_LOCAL + '/@tesseract.js-data/eng/4.0.0',
+} : {
+  lib:    'https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js',
+  worker: 'https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/worker.min.js',
+  core:   'https://cdn.jsdelivr.net/npm/tesseract.js-core@6.1.2',
+  lang:   'https://cdn.jsdelivr.net/npm/@tesseract.js-data/eng@1.0.0/4.0.0',
+};
+
+let ocrLib = null;
+function loadOcrLib(){
+  if(window.Tesseract) return Promise.resolve(window.Tesseract);
+  if(ocrLib) return ocrLib;
+  ocrLib = new Promise((res, rej) => {
+    const sc = document.createElement('script');
+    sc.src = OCR.lib;
+    sc.onload = () => window.Tesseract ? res(window.Tesseract) : rej(new Error('empty lib'));
+    sc.onerror = () => { ocrLib = null; rej(new Error('offline')); };
+    document.head.appendChild(sc);
+  });
+  return ocrLib;
+}
+
+// Phone screenshots come in small and low-contrast for OCR: upscale and clean up.
+function prep(img){
+  const target = Math.min(2400, Math.max(1400, img.naturalWidth * 2));
+  const k = target / img.naturalWidth;
+  const c = document.createElement('canvas');
+  c.width = Math.round(img.naturalWidth * k);
+  c.height = Math.round(img.naturalHeight * k);
+  const x = c.getContext('2d');
+  x.imageSmoothingQuality = 'high';
+  x.drawImage(img, 0, 0, c.width, c.height);
+  const d = x.getImageData(0, 0, c.width, c.height);
+  const px = d.data;
+  for(let i = 0; i < px.length; i += 4){
+    const g = 0.299*px[i] + 0.587*px[i+1] + 0.114*px[i+2];
+    const v = Math.max(0, Math.min(255, (g - 128) * 1.45 + 128));
+    px[i] = px[i+1] = px[i+2] = v;
+  }
+  x.putImageData(d, 0, 0);
+  return c;
+}
+
+// Two uses of the same reader: the WOD screenshot and the "PRs & Benchmarks" one.
+const READERS = {
+  wod: {
+    box: '#shotBox',
+    apply(txt){
+      $('#wodtext').value = txt;
+      S.wod = txt; save(); renderWod();
+      const n = parseWod(txt, ALIASES).filter(b => b.parts.some(x => x.key) && (b.percents.length || b.kilos.length)).length;
+      return n
+        ? n + (n === 1 ? ' line recognised' : ' lines recognised') + '. Check the text below before trusting it.'
+        : "Read some text but didn't recognise any movement with a load. Fix it below.";
+    },
+  },
+  prs: {
+    box: '#prBox',
+    apply(txt){
+      const found = parsePRs(txt, ALIASES);
+      const keys = Object.keys(found);
+      if(!keys.length) return "Didn't recognise any PR in that screenshot.";
+      // A WodUp screenshot is fresh data from the source: it overwrites whatever
+      // you typed by hand and lets the history compete again.
+      for(const k of keys){ S.maxes[k] = found[k]; delete S.manual[k]; }
+      save(); renderCfg(); renderQuick(); renderWod();
+      const list = keys.map(k => MOVEMENTS.find(m => m.key === k).name + ' ' + fmt(found[k])).join(' · ');
+      const msg = keys.length + (keys.length === 1 ? ' PR imported: ' : ' PRs imported: ') + list;
+      // If the history is still above the PR just imported, warn: the calculation
+      // will NOT use the number you just saw in the screenshot.
+      const overridden = keys.filter(k => HIST_MAXES[k] && HIST_MAXES[k].kg > found[k]);
+      return overridden.length
+        ? msg + '. Note: for ' + overridden.map(k => MOVEMENTS.find(m => m.key === k).name).join(', ')
+              + ' the history still governs, because it is heavier.'
+        : msg;
+    },
+  },
+};
+
+function shotUI(boxSel, src){
+  $(boxSel).innerHTML =
+    '<div class="shot"><img src="' + src + '" alt="screenshot">' +
+    '<div class="info"><div class="msg">Reading the screenshot…</div>' +
+    '<div class="bar"><i></i></div></div></div>';
+}
+const shotMsg = (boxSel, t) => { const e = $(boxSel + ' .msg'); if(e) e.textContent = t; };
+const shotBar = (boxSel, p) => { const e = $(boxSel + ' .bar i'); if(e) e.style.width = Math.round(p*100) + '%'; };
+
+async function readShot(blob, kind){
+  const R = READERS[kind];
+  const url = URL.createObjectURL(blob);
+  shotUI(R.box, url);
+  const img = new Image();
+  await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = url; });
+
+  let T;
+  try{
+    shotMsg(R.box, 'Loading the reader (first time only)…');
+    T = await loadOcrLib();
+  }catch(e){
+    shotMsg(R.box, "Couldn't load the reader: it needs a connection the first time. " +
+      'Meanwhile, on iOS/macOS you can select the text inside the screenshot itself and paste it by hand.');
+    return;
+  }
+
+  try{
+    const worker = await T.createWorker('eng', 1, {
+      workerPath: OCR.worker,
+      corePath: OCR.core,
+      langPath: OCR.lang,
+      logger: m => {
+        if(m.status === 'recognizing text'){
+          shotBar(R.box, m.progress);
+          shotMsg(R.box, 'Reading… ' + Math.round(m.progress*100) + '%');
+        } else shotMsg(R.box, m.status);
+      },
+    });
+    const { data } = await worker.recognize(prep(img));
+    await worker.terminate();
+
+    const txt = (data.text || '').replace(/[ \t]+/g, ' ').trim();
+    shotBar(R.box, 1);
+    shotMsg(R.box, txt ? R.apply(txt) : "Couldn't get any text out of that screenshot. Try a bigger one.");
+  }catch(e){
+    shotMsg(R.box, 'The reader failed: ' + e.message);
+  }
+}
+
+function grabImage(items){
+  for(const it of items){
+    if(it.type && it.type.startsWith('image/')) return it.getAsFile ? it.getAsFile() : it;
+  }
+  return null;
+}
+
+// On paste, the screenshot goes to whichever tab is open.
+document.addEventListener('paste', e => {
+  const f = grabImage(e.clipboardData ? e.clipboardData.items : []);
+  if(!f) return;
+  e.preventDefault();
+  readShot(f, $('#cfg').classList.contains('on') ? 'prs' : 'wod');
+});
+
+function wireDrop(dropSel, fileSel, kind){
+  $(dropSel).onclick = () => $(fileSel).click();
+  $(fileSel).onchange = e => { if(e.target.files[0]) readShot(e.target.files[0], kind); };
+  ['dragenter','dragover'].forEach(ev =>
+    $(dropSel).addEventListener(ev, e => { e.preventDefault(); $(dropSel).classList.add('hot'); }));
+  ['dragleave','drop'].forEach(ev =>
+    $(dropSel).addEventListener(ev, e => { e.preventDefault(); $(dropSel).classList.remove('hot'); }));
+  $(dropSel).addEventListener('drop', e => {
+    const f = grabImage(e.dataTransfer ? e.dataTransfer.files : []);
+    if(f) readShot(f, kind);
+  });
+}
+wireDrop('#drop', '#shotFile', 'wod');
+wireDrop('#prDrop', '#prFile', 'prs');
+
+renderCtx();
+renderWod();
+</script>
+</body>
+</html>

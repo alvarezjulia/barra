@@ -1,0 +1,198 @@
+{
+  "app": "barra",
+  "version": 1,
+  "bar": 15,
+  "blocks": [
+    {
+      "title": "Power Snatch + Snatch Balance",
+      "parts": [
+        {
+          "key": "power_snatch",
+          "label": "Power Snatch",
+          "reps": 1
+        },
+        {
+          "key": "snatch_balance",
+          "label": "Snatch Balance",
+          "reps": 3
+        }
+      ],
+      "governing": "power_snatch",
+      "governingMax": 30,
+      "sets": 6,
+      "reps": null,
+      "intervalSec": 120,
+      "restSec": null,
+      "loads": [
+        {
+          "pct": 70,
+          "targetKg": 21,
+          "kg": 21,
+          "perSideKg": 3,
+          "plates": [
+            {
+              "w": 2,
+              "n": 1
+            },
+            {
+              "w": 1,
+              "n": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Power Clean + Push Jerk + Split Jerk",
+      "parts": [
+        {
+          "key": "power_clean",
+          "label": "Power Clean",
+          "reps": null
+        },
+        {
+          "key": "push_jerk",
+          "label": "Push Jerk",
+          "reps": null
+        },
+        {
+          "key": "split_jerk",
+          "label": "Split Jerk",
+          "reps": null
+        }
+      ],
+      "governing": "push_jerk",
+      "governingMax": 41,
+      "sets": 6,
+      "reps": null,
+      "intervalSec": 120,
+      "restSec": null,
+      "loads": [
+        {
+          "pct": 70,
+          "targetKg": 28.7,
+          "kg": 29,
+          "perSideKg": 7,
+          "plates": [
+            {
+              "w": 5,
+              "n": 1
+            },
+            {
+              "w": 2,
+              "n": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Back Squat",
+      "parts": [
+        {
+          "key": "back_squat",
+          "label": "Back Squat",
+          "reps": 6
+        }
+      ],
+      "governing": "back_squat",
+      "governingMax": 72,
+      "sets": 4,
+      "reps": 6,
+      "intervalSec": 240,
+      "restSec": null,
+      "loads": [
+        {
+          "pct": 74,
+          "targetKg": 53.28,
+          "kg": 53,
+          "perSideKg": 19,
+          "plates": [
+            {
+              "w": 15,
+              "n": 1
+            },
+            {
+              "w": 2.5,
+              "n": 1
+            },
+            {
+              "w": 1.5,
+              "n": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Snatch",
+      "parts": [
+        {
+          "key": "snatch",
+          "label": "Snatch",
+          "reps": null
+        }
+      ],
+      "governing": "snatch",
+      "governingMax": 33,
+      "sets": 4,
+      "reps": 1,
+      "intervalSec": null,
+      "restSec": null,
+      "loads": [
+        {
+          "pct": 85,
+          "targetKg": 28.05,
+          "kg": 28,
+          "perSideKg": 6.5,
+          "plates": [
+            {
+              "w": 5,
+              "n": 1
+            },
+            {
+              "w": 1.5,
+              "n": 1
+            }
+          ]
+        },
+        {
+          "pct": 90,
+          "targetKg": 29.7,
+          "kg": 30,
+          "perSideKg": 7.5,
+          "plates": [
+            {
+              "w": 5,
+              "n": 1
+            },
+            {
+              "w": 2.5,
+              "n": 1
+            }
+          ]
+        },
+        {
+          "pct": 93,
+          "targetKg": 30.69,
+          "kg": 30.5,
+          "perSideKg": 7.75,
+          "plates": [
+            {
+              "w": 5,
+              "n": 1
+            },
+            {
+              "w": 1.5,
+              "n": 1
+            },
+            {
+              "w": 1.25,
+              "n": 1
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

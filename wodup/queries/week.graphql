@@ -1,0 +1,10 @@
+query Week($start: Date!, $end: Date!) {
+  currentUser {
+    activityTimeline(startDate: $start, endDate: $end) {
+      date
+      subscribedWods { id name occursOn classType { name }
+        wodComponents { id prefix name preInstructions postInstructions notes hidden rowOrder
+          workout { id name type description details } } }
+    }
+  }
+}

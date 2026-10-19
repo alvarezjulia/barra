@@ -1,0 +1,5 @@
+# Garmin upload through a real browser. `make setup` downloads Chromium separately.
+playwright>=1.50
+
+# Only for wodup/cookies.py: decrypting the WodUp cookie Chrome stores.
+cryptography>=42.0

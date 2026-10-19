@@ -1,0 +1,15 @@
+query Month($start: Date!, $end: Date!) {
+  currentUser {
+    results(startDate: $start, endDate: $end) {
+      id doneOn doneAt pr prAmount resultPr outputPr score notes prefix scaling type
+      feeling perceivedExertion sessionOrder details
+      workout { id name type description details tags }
+      wod { id }
+      outputs {
+        id reps load loadUnit standardizedLoad distance distanceUnit duration durationUnit
+        complexIndex clusterIndex detailsIndex tempo trackPr prs
+        movement { id name slug category }
+      }
+    }
+  }
+}

@@ -1,0 +1,9 @@
+query Prs($ids: [ID!]!) {
+  currentUser {
+    strengthPrsForMovements(movementIds: $ids) {
+      id reps load loadUnit standardizedLoad doneAt trackPr prs
+      movement { id name }
+      result { id doneOn }
+    }
+  }
+}
